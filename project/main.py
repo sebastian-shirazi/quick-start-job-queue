@@ -20,7 +20,10 @@ class Queue:
         if int(priority) < 1:
             priority = self.DEFAULT_PRIORITY
         try:
-            self.queue.append((uuid, name, int(priority)))
+            if self.sort_method == "priority" or self.sort_method == "lifo":
+                self.queue.append((uuid, name, int(priority)))
+            else:
+                self.queue.insert(0, (uuid, name, int(priority)))
         except ValueError:
             print("Invalid type (priority must be an integer)")
 
@@ -51,17 +54,14 @@ class Queue:
             print("Queue is empty!")
 
     def custom_sort(self):
-        if(self.sort_method == "fifo"):
+        if self.sort_method == "lifo":
             return
-        elif(self.sort_method == "lifo"):
+        elif self.sort_method == "fifo":
             self.queue = self.queue[::-1]
             return self.queue
-        elif(self.sort_method == "priority"):
+        else:
             self.queue.sort(key=lambda x: x[2])
             return self.queue
-        else:
-            print("Invalid sort method, must choose one of the three options")
-            self.prompt_sort()
 
     def add_task(self):
         uuid = input("Enter the UUID: ")
@@ -71,7 +71,8 @@ class Queue:
             self.enqueue(uuid, name)
         else:
             self.enqueue(uuid, name, priority)
-        self.priotity_sort()
+        if self.sort_method == "priority":
+            self.custom_sort()
         print("Task added")
 
 
@@ -107,6 +108,10 @@ class Queue:
             "How would you like the queue sorted? Enter 'FIFO' for first in first out, 'LIFO' for last in first out, or 'priority' for priority: "
             )
         self.sort_method = input().strip().lower()
+        if self.sort_method not in ["fifo", "lifo", "priority"]:
+            print("Invalid sort method")
+            self.prompt_sort()
+            return
         return self.sort_method
 
     def handle_input(self):
@@ -128,7 +133,8 @@ def main():
     q = Queue()
     filepath = input("Enter filepath: ")
     q.read_file(filepath)
-    q.prompt_sort()
+    while not q.sort_method:
+        q.prompt_sort()
     q.custom_sort()
     print("Queue created")
     q.prompt_user()
