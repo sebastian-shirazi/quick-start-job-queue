@@ -10,13 +10,16 @@ This project simulates a job queue using a priority queue to add / execute jobs.
 
 ## To Run
 ### VSCode (IDE)
-  * Place file to be read in root directory (optional)
+  * Place file to be read in root directory of main.py (optional)
   * Run using run button
   * Enter filename if in root directory or filepath if located elsewhere
+  * Specify sorting method
   * Use keyboard inputs "1", "2", "3" and "4" to interact with program as necessary
 
-### Docker
-  * Place file to be read in root directory
+### Docker (Via command line)
+  * Place file to be read in root directory of main.py
+  * Build environment using `docker build - < Dockerfile` 
   * Run using command `docker-compose up -d && docker attach CONTAINER-NAME`
   * Enter filename
+  * Specify sorting method
   * Use keyboard inputs "1", "2", "3" and "4" to interact with program as necessary
