@@ -26,7 +26,7 @@ class Queue:
 
     def dequeue(self):
         """Removes the job from the front of the queue if present, otherwise prints message"""
-        if self.queue:
+        if not self.is_empty():
             print("Running " + self.queue[0][1])
             return self.queue.pop(0)
         print("Queue is empty!")
@@ -34,7 +34,7 @@ class Queue:
 
     def peek(self):
         """Returns the job at the front of the queue if present, otherwise prints message"""
-        if self.queue:
+        if not self.is_empty():
             return self.queue[0]
         print("Queue is empty!")
         return None
@@ -62,7 +62,7 @@ class Queue:
         if self.sort_method == "lifo":
             self.queue.sort(key=lambda x: x[3], reverse=True)
         if self.sort_method == "priority":
-            self.queue.sort(key=lambda x: x[2])
+            self.queue.sort(key=lambda x: (x[2], x[3]))
 
     def add_task(self):
         """Prompts the user to enter a UUID, name, and priority for a job
