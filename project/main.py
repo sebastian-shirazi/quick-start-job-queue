@@ -10,7 +10,7 @@ class Queue:
         self.sort_method = None
         self.DEFAULT_PRIORITY = 10
 
-    def enqueue(self, uuid, name, priority=10):
+    def enqueue(self, uuid, name, order, priority=10):
         """
         Adds a job to the queue based on the sort method
         :param uuid: str: the unique identifier for the job
@@ -20,10 +20,7 @@ class Queue:
         if int(priority) < 1:
             priority = self.DEFAULT_PRIORITY
         try:
-            if self.sort_method in ["priority", "fifo"]:
-                self.queue.append((uuid, name, int(priority)))
-            else:
-                self.queue.insert(0, (uuid, name, int(priority)))
+            self.queue.append((uuid, name, int(priority), order))
         except ValueError:
             print("Invalid type (priority must be an integer)")
 
@@ -54,17 +51,17 @@ class Queue:
         """Prints the jobs in the queue"""
         if not self.is_empty():
             for count, job in enumerate(self.queue):
-                print(f"Job {str(count + 1)}: {job}")
+                print(f"Job {str(count + 1)}: {job[0:3]}")
         else:
             print("Queue is empty!")
 
     def custom_sort(self):
         """Sorts the queue based on the sort method passed in by user"""
-        if self.sort_method == "fifo":
-            self.queue = self.queue[::-1]
+        if self.sort_method == "lifo":
+            return self.queue.sort(key=lambda x: x[3], reverse=True)
         elif self.sort_method == "priority":
-            self.queue.sort(key=lambda x: x[2])
-        return self.queue
+            return self.queue.sort(key=lambda x: x[2])
+        return self.queue.sort(key=lambda x: x[3])
 
     def add_task(self):
         """Prompts the user to enter a UUID, name, and priority for a job
@@ -73,11 +70,14 @@ class Queue:
         name = input("Enter the name: ")
         priority = input("Enter the priority (default is 10): ")
         if not priority:
-            self.enqueue(uuid, name)
+            self.enqueue(uuid, name, self.size() + 1)
         else:
-            self.enqueue(uuid, name, priority)
-        if self.sort_method == "priority":
-            self.custom_sort()
+            if priority.isdigit():
+                self.enqueue(uuid, name, self.size() + 1, priority)
+            else:
+                print("Invalid priority - must be an integer")
+                self.add_task()
+        self.custom_sort()
         print("Task added")
 
 
@@ -100,24 +100,24 @@ class Queue:
                 "Invalid file format - file not found or not a .txt file"
             )
         with open(filepath, "r", encoding="utf-8") as file:
-            for line in file:
+            for order, line in enumerate(file, 1):
                 if ",," not in line and line.count(",") == 2:
                     line = line.strip().split(",")
                     if line:
-                        self.enqueue(line[0].strip(), line[1].strip(), line[2].strip())
+                        self.enqueue(line[0].strip(), line[1].strip(), order, line[2].strip())
                 else:
                     print(f"Invalid job format - \"{line}\" - line skipped")
 
-    def prompt_user(self):
+    def prompt_choice_select(self):
         """Prompts the user to enter a choice to add a task,
         run a task, view the queue, or exit the program"""
         print(
-            "Enter '1' to add a task, '2' to run a task, '3' to view the queue, '4' to exit"
+            "Enter '1' to add a task, '2' to run a task, '3' to view the queue, '4' to change the sorting of the queue, '5' to exit"
         )
         self.choice = input().strip()
         return self.choice
 
-    def prompt_sort(self):
+    def prompt_sort_select(self):
         """Prompts the user to enter a sort method for the queue"""
         print(
             "How would you like the queue sorted? Enter 'FIFO' for first in first out, 'LIFO' for last in first out, or 'priority' for priority: "
@@ -125,8 +125,11 @@ class Queue:
         self.sort_method = input().strip().lower()
         if self.sort_method not in ["fifo", "lifo", "priority"]:
             print("Invalid sort method")
-            self.prompt_sort()
-        return self.sort_method
+            self.prompt_sort_select()
+        else:
+            print(f"Queue will be sorted by {self.sort_method.upper()}")
+            self.custom_sort()
+        return self.sort_method,
 
     def handle_input(self):
         """Handles the user input by calling the appropriate method based on the choice"""
@@ -134,13 +137,14 @@ class Queue:
             "1": self.add_task,
             "2": self.run_task,
             "3": self.get_queue,
-            "4": sys.exit,
+            "4": self.prompt_sort_select,
+            "5": sys.exit,
         }
         if self.choice in options:
             options[self.choice]()
         else:
             print("Invalid choice")
-        self.prompt_user()
+        self.prompt_choice_select()
 
 
 def main():
@@ -149,10 +153,9 @@ def main():
     filepath = input("Enter filepath: ")
     q.read_file(filepath)
     while not q.sort_method:
-        q.prompt_sort()
-    q.custom_sort()
+        q.prompt_sort_select()
     print("Queue created")
-    q.prompt_user()
+    q.prompt_choice_select()
     while q.choice:
         q.handle_input()
     sys.exit()
