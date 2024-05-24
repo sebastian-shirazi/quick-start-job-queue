@@ -57,11 +57,12 @@ class Queue:
 
     def custom_sort(self):
         """Sorts the queue based on the sort method passed in by user"""
+        if self.sort_method == "fifo":
+            self.queue.sort(key=lambda x: x[3])
         if self.sort_method == "lifo":
-            return self.queue.sort(key=lambda x: x[3], reverse=True)
-        elif self.sort_method == "priority":
-            return self.queue.sort(key=lambda x: x[2])
-        return self.queue.sort(key=lambda x: x[3])
+            self.queue.sort(key=lambda x: x[3], reverse=True)
+        if self.sort_method == "priority":
+            self.queue.sort(key=lambda x: x[2])
 
     def add_task(self):
         """Prompts the user to enter a UUID, name, and priority for a job
@@ -104,7 +105,10 @@ class Queue:
                 if ",," not in line and line.count(",") == 2:
                     line = line.strip().split(",")
                     if line:
-                        self.enqueue(line[0].strip("\'").strip(), line[1].strip("\'").strip(), order, line[2].strip())
+                        self.enqueue(line[0].strip("\'").strip(),
+                                    line[1].strip("\'").strip(),
+                                    order,
+                                    line[2].strip())
                 else:
                     print(f"Invalid job format - \"{line}\" - line skipped")
 
@@ -129,7 +133,7 @@ class Queue:
         else:
             print(f"Queue will be sorted by {self.sort_method.upper()}")
             self.custom_sort()
-        return self.sort_method,
+        return self.sort_method
 
     def handle_input(self):
         """Handles the user input by calling the appropriate method based on the choice"""
