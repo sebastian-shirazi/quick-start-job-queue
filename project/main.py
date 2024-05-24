@@ -51,7 +51,7 @@ class Queue:
         """Prints the jobs in the queue"""
         if not self.is_empty():
             for count, job in enumerate(self.queue):
-                print(f"Job {str(count + 1)}: {job[0:3]}")
+                print(f"No. {str(count + 1)}: {job[0]}, {job[1]} - Priority: {job[2]}")
         else:
             print("Queue is empty!")
 
@@ -104,7 +104,7 @@ class Queue:
                 if ",," not in line and line.count(",") == 2:
                     line = line.strip().split(",")
                     if line:
-                        self.enqueue(line[0].strip(), line[1].strip(), order, line[2].strip())
+                        self.enqueue(line[0].strip("\'").strip(), line[1].strip("\'").strip(), order, line[2].strip())
                 else:
                     print(f"Invalid job format - \"{line}\" - line skipped")
 
