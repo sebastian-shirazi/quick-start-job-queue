@@ -1,4 +1,4 @@
-import sys
+import sys, json, time
 
 
 class Queue:
@@ -9,18 +9,21 @@ class Queue:
         self.choice = None
         self.sort_method = None
         self.DEFAULT_PRIORITY = 10
+        self.DEFAULT_TIME = 0
 
-    def enqueue(self, uuid, name, order, priority=10):
+    def enqueue(self, uuid, name, priority, exec_time, order):
         """
         Adds a job to the queue based on the sort method
         :param uuid: str: the unique identifier for the job
         :param name: str: the name of the job
         :param priority: int: the priority of the job
         """
-        if int(priority) < 1:
+        if priority < 1:
             priority = self.DEFAULT_PRIORITY
+        if exec_time < 0:
+            exec_time = self.DEFAULT_TIME
         try:
-            self.queue.append((uuid, name, int(priority), order))
+            self.queue.append((uuid, name, priority, exec_time, order))
         except ValueError:
             print("Invalid type (priority must be an integer)")
 
@@ -28,6 +31,8 @@ class Queue:
         """Removes the job from the front of the queue if present, otherwise prints message"""
         if not self.is_empty():
             print("Running " + self.queue[0][1])
+            if self.queue[0][3] > 0:
+                time.sleep(self.queue[0][3])
             return self.queue.pop(0)
         print("Queue is empty!")
         return None
@@ -47,6 +52,10 @@ class Queue:
         """Returns True if the queue is empty, otherwise False"""
         return len(self.queue) == 0
 
+    def clear_queue(self):
+        """Clears the queue"""
+        self.queue = []
+
     def print_queue(self):
         """Prints the jobs in the queue"""
         if not self.is_empty():
@@ -58,11 +67,11 @@ class Queue:
     def custom_sort(self):
         """Sorts the queue based on the sort method passed in by user"""
         if self.sort_method == "fifo":
-            self.queue.sort(key=lambda x: x[3])
+            self.queue.sort(key=lambda x: x[4])
         if self.sort_method == "lifo":
-            self.queue.sort(key=lambda x: x[3], reverse=True)
+            self.queue.sort(key=lambda x: x[4], reverse=True)
         if self.sort_method == "priority":
-            self.queue.sort(key=lambda x: (x[2], x[3]))
+            self.queue.sort(key=lambda x: (x[2], x[4]))
 
     def add_task(self):
         """Prompts the user to enter a UUID, name, and priority for a job
@@ -70,21 +79,23 @@ class Queue:
         uuid = input("Enter the UUID: ")
         name = input("Enter the name: ")
         priority = input("Enter the priority (default is 10): ")
-        if not priority:
-            self.enqueue(uuid, name, self.size() + 1)
-        else:
-            if priority.isdigit():
-                self.enqueue(uuid, name, self.size() + 1, priority)
-            else:
-                print("Invalid priority - must be an integer")
-                self.add_task()
+        exec_time = input("Enter the execution time (default is 0): ")
+        uuid = uuid.strip("'").strip()
+        name = name.strip("'").strip()
+        try:
+            priority = int(priority.strip()) if priority != "" else self.DEFAULT_PRIORITY
+            exec_time = int(exec_time.strip()) if exec_time != "" else self.DEFAULT_TIME
+        except ValueError:
+            print("Invalid priority or execution time - must be an integer")
+            self.add_task()
+        self.enqueue(uuid, name, self.size() + 1, priority, exec_time)
         self.custom_sort()
         print("Task added")
 
 
     def run_task(self):
         """Wrapper method for running tasks in the queue"""
-        self.dequeue()
+        return self.dequeue()
 
     def get_queue(self):
         """Wrapper method for accessing the queue"""
@@ -95,22 +106,34 @@ class Queue:
         Reads a file and adds the jobs to the queue by parsing lines of file
         :param filepath: str: the path to the file to be read (or name if in root directory)
         """
-
         if "txt" not in filepath:
             raise FileNotFoundError(
                 "Invalid file format - file not found or not a .txt file"
             )
         with open(filepath, "r", encoding="utf-8") as file:
             for order, line in enumerate(file, 1):
-                if ",," not in line and line.count(",") == 2:
-                    line = line.strip().split(",")
-                    if line:
-                        self.enqueue(line[0].strip("\'").strip(),
-                                    line[1].strip("\'").strip(),
-                                    order,
-                                    line[2].strip())
+                line_parts = line.strip().split(",")
+                if len(line_parts) == 2:
+                    uuid, name = line_parts
+                    priority = self.DEFAULT_PRIORITY
+                    exec_time = self.DEFAULT_TIME
+                elif len(line_parts) == 3:
+                    uuid, name, priority = line_parts
+                    exec_time = self.DEFAULT_TIME
+                elif len(line_parts) == 4:
+                    uuid, name, priority, exec_time = line_parts
                 else:
                     print(f"Invalid job format - \"{line}\" - line skipped")
+                    continue
+                uuid = uuid.strip("'").strip()
+                name = name.strip("'").strip()
+                try:
+                    priority = int(priority.strip()) if priority else self.DEFAULT_PRIORITY
+                    exec_time = int(exec_time.strip()) if exec_time else self.DEFAULT_TIME
+                except ValueError:
+                    print(f"Invalid priority or exec_time - \"{line}\" - line skipped")
+                    continue
+                self.enqueue(uuid, name, order, priority, exec_time)
 
     def prompt_choice_select(self):
         """Prompts the user to enter a choice to add a task,
