@@ -1,8 +1,0 @@
-services:
-  app:
-    build: .
-    volumes:
-      - ./:/opt/
-    stdin_open: true
-    tty: true
-    command: python3 main.py
