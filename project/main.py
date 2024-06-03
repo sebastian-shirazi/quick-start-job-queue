@@ -30,9 +30,6 @@ class Queue:
     def dequeue(self):
         """Removes the job from the front of the queue if present, otherwise prints message"""
         if not self.is_empty():
-            print("Running " + self.queue[0][1])
-            if self.queue[0][3] > 0:
-                time.sleep(self.queue[0][3])
             return self.queue.pop(0)
         print("Queue is empty!")
         return None
@@ -95,10 +92,14 @@ class Queue:
 
     def run_task(self):
         """Wrapper method for running tasks in the queue"""
-        return self.dequeue()
+        print("Running " + self.queue[0][1])
+        if self.queue[0][3] > 0:
+            time.sleep(self.queue[0][3])
+        print("Completed -", self.dequeue())
 
     def get_queue(self):
         """Wrapper method for accessing the queue"""
+        print("Accessing queue:")
         self.print_queue()
 
     def read_file(self, filepath):
@@ -133,7 +134,7 @@ class Queue:
                 except ValueError:
                     print(f"Invalid priority or exec_time - \"{line}\" - line skipped")
                     continue
-                self.enqueue(uuid, name, order, priority, exec_time)
+                self.enqueue(uuid, name, priority, exec_time, order)
 
     def prompt_choice_select(self):
         """Prompts the user to enter a choice to add a task,
