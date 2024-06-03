@@ -18,8 +18,12 @@ This project simulates a job queue using a priority queue to add / execute jobs.
 
 ### Docker (Via command line)
   * Place file to be read in root directory of main.py
+<<<<<<< HEAD
   * Build environment using `docker build - < Dockerfile`
   * Run using command `docker-compose up -d && docker attach CONTAINER-NAME`
+=======
+  * Run using command `docker-compose up -d && docker attach CONTAINER-NAME` (project-app-1)
+>>>>>>> 2aa6d0333856ab3286c6341b229880f09607adab
   * Enter filename
   * Specify sorting method
   * Use keyboard inputs "1", "2", "3" and "4" to interact with program as necessary
