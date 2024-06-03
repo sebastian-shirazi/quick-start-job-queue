@@ -1,0 +1,9 @@
+services:
+  flask-app:
+    build: .
+    volumes:
+      - ./:/app/
+    # stdin_open: true
+    # tty: true
+    ports:
+      - "5000:5000"
