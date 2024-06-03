@@ -18,7 +18,7 @@ This project simulates a job queue using a priority queue to add / execute jobs.
 
 ### Docker (Via command line)
   * Place file to be read in root directory of main.py
-  * Run using command `docker-compose up -d && docker attach CONTAINER-NAME` (project-app-1)
+  * Run using command `docker-compose up -d && docker attach SERVICE` (flask-app-1)
   * Enter filename
   * Specify sorting method
   * Use keyboard inputs "1", "2", "3" and "4" to interact with program as necessary
